@@ -1,3 +1,4 @@
+import logging
 from random import random
 from math import sin, cos, pi, atan2
 
@@ -87,8 +88,10 @@ class Body(Thing):
 
 	def tick(self):
 		if self.dying:
+			logging.info("Body {} is dying".format(id(body)))
 			self.survive()
 		elif self.dead:
+			logging.info("Body {} died".format(id(body)))
 			self.map.things.remove(self)
 		else:
 			self.move()
@@ -190,7 +193,7 @@ class EnergyBank(Thing):
 		super().__init__(map_)
 		self.energy = 20000 + random() * 10000
 		self.max_energy = self.energy
-		self.connected = frozenset()
+		self.connected = set()
 		self.rate = random()
 
 	def _connect(self, thing):
@@ -206,11 +209,13 @@ class EnergyBank(Thing):
 		self.energy = self.max_energy * random() * 0.005
 
 	def _supply(self):
-		for thing in self.connected:
-			if thing.connected is self:
+		connected = set(self.connected)
+		for thing in connected:
+			if thing.connection is self:
 				thing.recharge(self.drain(self.rate))
 			else:
 				self._disconnect(thing)
+		self.connected = connected
 
 	def tick(self):
 		self.recharge()
