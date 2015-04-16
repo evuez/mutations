@@ -1,6 +1,6 @@
 import logging
 from random import random
-from math import sin, cos, pi, atan2
+from math import sin, cos, pi, atan2, sqrt
 
 
 class NothingFoundError(Exception):
@@ -70,8 +70,8 @@ class Thing(object):
 		raise NotImplementedError
 
 	def drain(self, amount):
-		logging.info('{} {} is draining'.format(
-			self.__class__.__name__, id(self)
+		logging.info('{} {} is draining, {} remaining'.format(
+			self.__class__.__name__, id(self), self.energy
 		))
 		self.energy -= amount
 		return amount
@@ -90,24 +90,24 @@ class Body(Thing):
 		self.next_spot = None
 
 	def tick(self):
-		if self.dying:
-			logging.info("Body {} is dying".format(id(self)))
-			self.survive()
-		elif self.dead:
+		if self.dead:
 			logging.info("Body {} died".format(id(self)))
 			self.map.things.remove(self)
+		elif self.dying:
+			logging.info("Body {} is dying".format(id(self)))
+			self.survive()
 		else:
 			self.move()
 
 	@property
 	def dying(self):
 		return self.energy < self.MAX_ENERGY / 100
-	
+
 	@property
 	def dead(self):
 		return self.energy < 1
 
-	def is_neighbor(thing):
+	def is_neighbor(self, thing):
 		distance = sqrt(
 			(thing.x - self.x)**2 +
 			(thing.y - self.y)**2
@@ -118,7 +118,7 @@ class Body(Thing):
 
 	def recharge(self, amount):
 		logging.info('Body {} is recharging'.format(id(self)))
-		self.energy = min(self.energy + amount, MAX_ENERGY)
+		self.energy = min(self.energy + amount, self.MAX_ENERGY)
 
 	def move(self):
 		if self.abilities.move:
@@ -135,14 +135,17 @@ class Body(Thing):
 			spot.x - self.x
 		)
 		self._forward()
-		if thing.is_neighbor(spot):
+		if self.is_neighbor(spot):
+			logging.info('Body {} reached energy bank {}'.format(
+				id(self), id(spot.thing)
+			))
 			self.stop()
 
 	def survive(self):
 		"""
 		Used when dying to find an EnergyBank
 		"""
-		try:	
+		try:
 			self.next_spot.has(EnergyBank)
 		except (AttributeError, NotInThatSpotError):
 			self.next_spot = self._find(EnergyBank)
@@ -150,7 +153,7 @@ class Body(Thing):
 			self.stop() # best thing to do to survive longer
 		self.move_to(self.next_spot)
 
-	def _find(thing_class, find_nearest=True):
+	def _find(self, thing_class, find_nearest=True):
 		"""
 		Return first match if find_nearest is False,
 		return nearest otherwise.
