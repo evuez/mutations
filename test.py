@@ -1,6 +1,10 @@
 from mutations import Map
 from mutations import Body
 from mutations import EnergyBank
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 def test():
