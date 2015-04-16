@@ -70,6 +70,9 @@ class Thing(object):
 		raise NotImplementedError
 
 	def drain(self, amount):
+		logging.info('{} {} is draining'.format(
+			self.__class__.__name__, id(self)
+		))
 		self.energy -= amount
 		return amount
 
@@ -88,10 +91,10 @@ class Body(Thing):
 
 	def tick(self):
 		if self.dying:
-			logging.info("Body {} is dying".format(id(body)))
+			logging.info("Body {} is dying".format(id(self)))
 			self.survive()
 		elif self.dead:
-			logging.info("Body {} died".format(id(body)))
+			logging.info("Body {} died".format(id(self)))
 			self.map.things.remove(self)
 		else:
 			self.move()
@@ -114,6 +117,7 @@ class Body(Thing):
 		return True
 
 	def recharge(self, amount):
+		logging.info('Body {} is recharging'.format(id(self)))
 		self.energy = min(self.energy + amount, MAX_ENERGY)
 
 	def move(self):
@@ -170,12 +174,16 @@ class Body(Thing):
 		return Spot(nearest)
 
 	def _forward(self):
+		logging.info('Body {} is moving forward'.format(id(self)))
 		speed = random() * 10 + 10
+		self.drain(speed * 2)
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
 	def _turn(self):
+		logging.info('Body {} is turning'.format(id(self)))
 		speed = random() * 0.6 - 0.3
+		self.drain(speed)
 		self.direction += speed
 		while self.direction < 0:
 			self.direction += 2 * pi
@@ -206,6 +214,7 @@ class EnergyBank(Thing):
 		self.connected.discard(thing)
 
 	def recharge(self):
+		logging.info('EnergyBank {} is recharging'.format(id(self)))
 		self.energy = self.max_energy * random() * 0.005
 
 	def _supply(self):
