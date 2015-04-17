@@ -157,8 +157,10 @@ class Body(Thing):
 		)
 		self._forward()
 		if self.soft_connect(spot.thing):
-			logging.info("Body %d reached energy bank %d",
-				id(self), id(spot.thing)
+			logging.info("Body %d reached %s %d",
+				id(self),
+				spot.thing.__class__.__name__,
+				id(spot.thing)
 			)
 			self.stop()
 
