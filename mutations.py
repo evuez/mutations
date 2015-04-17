@@ -142,15 +142,18 @@ class Body(Thing):
 		self.energy = min(self.energy + amount, self.MAX_ENERGY)
 
 	def move(self):
-		if self.abilities.move:
-			if random() > 0.7:
-				self._turn()
-			self._forward()
+		if not self.abilities.move:
+			return
+		if random() > 0.7:
+			self._turn()
+		self._forward()
 
 	def stop(self):
 		self.abilities.move = False
 
 	def move_to(self, spot):
+		if not self.abilities.move:
+			return
 		self.direction = atan2(
 			spot.y - self.y,
 			spot.x - self.x
