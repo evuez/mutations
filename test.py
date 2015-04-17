@@ -4,6 +4,7 @@ from time import sleep
 from pyglet import app
 from pyglet.window import Window
 from pyglet.clock import schedule_interval
+from pyglet.gl import glClearColor
 
 from render import MapView
 from mutations import Map
@@ -41,6 +42,7 @@ def test_view():
 
 	@window.event
 	def on_draw():
+		glClearColor(.5, .6, .6, 1)
 		window.clear()
 		map_view.draw()
 
