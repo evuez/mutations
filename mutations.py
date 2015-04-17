@@ -146,12 +146,18 @@ class Body(Thing):
 		"""
 		Used when dying to find an EnergyBank
 		"""
+		logging.info("Body %d is trying to survive", id(self))
 		try:
 			self.next_spot.has(EnergyBank)
 		except (AttributeError, NotInThatSpotError):
 			self.next_spot = self._find(EnergyBank)
+			logging.info(
+				"Body %d has found EnergyBank %d",
+				id(self), id(self.next_spot.thing)
+			)
 		except NothingFoundError:
 			self.stop() # best thing to do to survive longer
+			logging.info("Body %d stopped to survive longer", id(self))
 		self.move_to(self.next_spot)
 
 	def _find(self, thing_class, find_nearest=True):
