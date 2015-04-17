@@ -11,6 +11,10 @@ class NotInThatSpotError(Exception):
 	pass
 
 
+class ConnectionRefusedError(Exception):
+	pass
+
+
 class Map(object):
 
 	def __init__(self, width, height):
@@ -63,13 +67,32 @@ class Thing(object):
 		self.y = random() * self.map.height
 		self.direction = random() * pi * 2
 
+	@property
+	def dead(self):
+		return self.energy < 1
+
 	def tick(self):
 		raise NotImplementedError
 
 	def recharge(self):
 		raise NotImplementedError
 
-	def drain(self, amount):
+	def connect(self, thing):
+		if thing is self:
+			raise ConnectionRefusedError
+		thing.accept(self)
+	
+	def soft_connect(self, thing):
+		try:
+			self.connect(thing)
+		except ConnectionRefusedError:
+			return False
+		return True
+
+	def accept(self, thing):
+		raise NotImplementedError
+
+	def _drain(self, amount):
 		logging.info(
 			"%s %d is draining, %0.2f remaining",
 			self.__class__.__name__, id(self), self.energy
@@ -114,10 +137,6 @@ class Body(Thing):
 	def dying(self):
 		return self.energy < self.MAX_ENERGY / 2
 
-	@property
-	def dead(self):
-		return self.energy < 1
-
 	def recharge(self, amount):
 		logging.info("Body %d is recharging", id(self))
 		self.energy = min(self.energy + amount, self.MAX_ENERGY)
@@ -137,7 +156,7 @@ class Body(Thing):
 			spot.x - self.x
 		)
 		self._forward()
-		if self.is_neighbor(spot):
+		if self.soft_connect(spot.thing):
 			logging.info("Body %d reached energy bank %d",
 				id(self), id(spot.thing)
 			)
@@ -187,14 +206,14 @@ class Body(Thing):
 	def _forward(self):
 		logging.info("Body %d is moving forward", id(self))
 		speed = random() * 10 + 10
-		self.drain(speed * 2)
+		self._drain(speed * 2)
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
 	def _turn(self):
 		logging.info("Body %d is turning", id(self))
 		speed = random() * 0.6 - 0.3
-		self.drain(speed)
+		self._drain(speed)
 		self.direction += speed
 		while self.direction < 0:
 			self.direction += 2 * pi
@@ -215,6 +234,10 @@ class EnergyBank(Thing):
 		self.connected = set()
 		self.rate = random() * 100
 
+	@property
+	def empty(self):
+		return self.dead
+
 	def _connect(self, thing):
 		thing.connection = self
 		self.connected.add(thing)
@@ -224,12 +247,25 @@ class EnergyBank(Thing):
 			thing.connection = None
 		self.connected.discard(thing)
 
-	def drain(self, amount):
-		super().drain(amount)
-		if self.energy < 1:
+	def _drain(self, amount):
+		super()._drain(amount)
+		if self.empty:
 			logging.info("EnergyBank %d is empty", id(self))
 			return 0
 		return amount
+
+	def accept(self, thing):
+		if self.empty:
+			raise ConnectionRefusedError
+		if thing.dead:
+			raise ConnectionRefusedError
+		if not self.is_neighbor(thing):
+			raise ConnectionRefusedError
+		logging.info(
+			"EnergyBank %d accept connection from %d",
+			id(self), id(thing)
+		)
+		self._connect(thing)
 
 	def recharge(self):
 		logging.info(
@@ -245,17 +281,9 @@ class EnergyBank(Thing):
 			if thing.dead or thing.connection is not self:
 				self._disconnect(thing)
 			else:
-				thing.recharge(self.drain(self.rate))
+				thing.recharge(self._drain(self.rate))
 		self.connected = connected
 
 	def tick(self):
 		self.recharge()
 		self._supply()
-		for thing in self.map.things:
-			if thing is self:
-				continue
-			if isinstance(thing, self.__class__):
-				continue
-			if not self.is_neighbor(thing):
-				continue
-			self._connect(thing)
