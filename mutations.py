@@ -75,7 +75,17 @@ class Thing(object):
 			self.__class__.__name__, id(self), self.energy
 		)
 		self.energy -= amount
+		self.energy = max(self.energy, 0)
 		return amount
+
+	def is_neighbor(self, thing):
+		distance = sqrt(
+			(thing.x - self.x)**2 +
+			(thing.y - self.y)**2
+		)
+		if distance > self.RADIUS + thing.RADIUS:
+			return False
+		return True
 
 
 class Body(Thing):
@@ -102,20 +112,11 @@ class Body(Thing):
 
 	@property
 	def dying(self):
-		return self.energy < self.MAX_ENERGY / 100
+		return self.energy < self.MAX_ENERGY / 2
 
 	@property
 	def dead(self):
 		return self.energy < 1
-
-	def is_neighbor(self, thing):
-		distance = sqrt(
-			(thing.x - self.x)**2 +
-			(thing.y - self.y)**2
-		)
-		if distance > self.RADIUS + thing.RADIUS:
-			return False
-		return True
 
 	def recharge(self, amount):
 		logging.info("Body %d is recharging", id(self))
@@ -212,7 +213,7 @@ class EnergyBank(Thing):
 		self.energy = 20000 + random() * 10000
 		self.max_energy = self.energy
 		self.connected = set()
-		self.rate = random()
+		self.rate = random() * 100
 
 	def _connect(self, thing):
 		thing.connection = self
@@ -223,9 +224,17 @@ class EnergyBank(Thing):
 			thing.connection = None
 		self.connected.discard(thing)
 
+	def drain(self, amount):
+		super().drain(amount)
+		if self.energy < 1:
+			logging.info("EnergyBank %d is empty", id(self))
+			self.connected.clear()
+			return 0
+		return amount
+
 	def recharge(self):
 		logging.info(
-			"EnergyBank %d is recharging, %0.2f",
+			"EnergyBank %d is recharging, %0.2f remaining",
 			id(self), self.energy
 		)
 		self.energy += self.max_energy * random() * 0.005
@@ -234,12 +243,10 @@ class EnergyBank(Thing):
 	def _supply(self):
 		connected = set(self.connected)
 		for thing in connected:
-			if thing.dead:
-				continue
-			if thing.connection is self:
-				thing.recharge(self.drain(self.rate))
-			else:
+			if thing.dead or thing.connection is not self:
 				self._disconnect(thing)
+			else:
+				thing.recharge(self.drain(self.rate))
 		self.connected = connected
 
 	def tick(self):
@@ -249,5 +256,7 @@ class EnergyBank(Thing):
 			if thing is self:
 				continue
 			if isinstance(thing, self.__class__):
+				continue
+			if not self.is_neighbor(thing):
 				continue
 			self._connect(thing)
