@@ -27,7 +27,7 @@ def test():
 
 def test_view():
 	map_ = Map(500, 500)
-	for i in range(2):
+	for i in range(5):
 		map_.add(EnergyBank(map_))
 	for i in range(50):
 		map_.add(Body(map_))
