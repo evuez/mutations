@@ -135,7 +135,7 @@ class Body(Thing):
 
 	@property
 	def dying(self):
-		return self.energy < self.MAX_ENERGY / 2
+		return self.energy < self.MAX_ENERGY / 3
 
 	def recharge(self, amount):
 		logging.info("Body %d is recharging", id(self))
