@@ -93,7 +93,7 @@ class Thing(object):
 		raise NotImplementedError
 
 	def _drain(self, amount):
-		logging.info(
+		logging.debug(
 			"%s %d is draining, %0.2f remaining",
 			self.__class__.__name__, id(self), self.energy
 		)
@@ -118,17 +118,18 @@ class Body(Thing):
 		super().__init__(map_)
 		self.age = 0
 		self.energy = 6500 + random() * 1000
-		self.decay = 8000 + random() * 5000
+		self.decay_rate = 8000 + random() * 5000
 		self.abilities = Abilities()
 		self.connection = None
 		self.next_spot = None
 
 	def tick(self):
+		self._decay()
 		if self.dead:
 			logging.info("Body %d died", id(self))
 			self.map.things.remove(self)
 		elif self.dying:
-			logging.info("Body %d is dying", id(self))
+			logging.debug("Body %d is dying", id(self))
 			self.survive()
 		else:
 			self.move()
@@ -137,8 +138,18 @@ class Body(Thing):
 	def dying(self):
 		return self.energy < self.MAX_ENERGY / 3
 
+	@property
+	def dead(self):
+		return (
+			super().dead or
+			(self.age / self.decay_rate) ** 4 > random()
+		) 
+	
+	def _decay(self):
+		self.age += 1
+
 	def recharge(self, amount):
-		logging.info("Body %d is recharging", id(self))
+		logging.debug("Body %d is recharging", id(self))
 		self.energy = min(self.energy + amount, self.MAX_ENERGY)
 
 	def move(self):
@@ -171,12 +182,12 @@ class Body(Thing):
 		"""
 		Used when dying to find an EnergyBank
 		"""
-		logging.info("Body %d is trying to survive", id(self))
+		logging.debug("Body %d is trying to survive", id(self))
 		try:
 			self.next_spot.has(EnergyBank)
 		except (AttributeError, NotInThatSpotError):
 			self.next_spot = self._find(EnergyBank)
-			logging.info(
+			logging.debug(
 				"Body %d has found EnergyBank %d",
 				id(self), id(self.next_spot.thing)
 			)
@@ -209,14 +220,14 @@ class Body(Thing):
 		return Spot(nearest)
 
 	def _forward(self):
-		logging.info("Body %d is moving forward", id(self))
+		logging.debug("Body %d is moving forward", id(self))
 		speed = random() * 10 + 10
 		self._drain(speed * 2)
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
 	def _turn(self):
-		logging.info("Body %d is turning", id(self))
+		logging.debug("Body %d is turning", id(self))
 		speed = random() * 0.6 - 0.3
 		self._drain(speed)
 		self.direction += speed
@@ -255,7 +266,7 @@ class EnergyBank(Thing):
 	def _drain(self, amount):
 		super()._drain(amount)
 		if self.empty:
-			logging.info("EnergyBank %d is empty", id(self))
+			logging.debug("EnergyBank %d is empty", id(self))
 			return 0
 		return amount
 
@@ -266,14 +277,14 @@ class EnergyBank(Thing):
 			raise ConnectionRefusedError
 		if not self.is_neighbor(thing):
 			raise ConnectionRefusedError
-		logging.info(
+		logging.debug(
 			"EnergyBank %d accept connection from %d",
 			id(self), id(thing)
 		)
 		self._connect(thing)
 
 	def recharge(self):
-		logging.info(
+		logging.debug(
 			"EnergyBank %d is recharging, %0.2f remaining",
 			id(self), self.energy
 		)
