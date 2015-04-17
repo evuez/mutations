@@ -41,12 +41,8 @@ class MapView(object):
 					color_rgb
 				)
 			except AttributeError:
-				color_rgb = hsv_to_rgb(
-					1 / 3 * thing.energy / thing.max_energy,
-					1, 1
-				)
 				circle(
 					thing.x, thing.y,
 					thing.RADIUS, 
-					color_rgb
+					[1 * thing.energy / thing.max_energy] * 3
 				)
