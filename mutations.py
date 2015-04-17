@@ -206,7 +206,7 @@ class Body(Thing):
 
 
 class EnergyBank(Thing):
-	RADIUS = 5
+	RADIUS = 10
 
 	def __init__(self, map_):
 		super().__init__(map_)
@@ -228,7 +228,6 @@ class EnergyBank(Thing):
 		super().drain(amount)
 		if self.energy < 1:
 			logging.info("EnergyBank %d is empty", id(self))
-			self.connected.clear()
 			return 0
 		return amount
 
