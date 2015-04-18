@@ -81,7 +81,7 @@ class Thing(object):
 		if thing is self:
 			raise ConnectionRefusedError
 		thing.accept(self)
-	
+
 	def soft_connect(self, thing):
 		try:
 			self.connect(thing)
@@ -125,6 +125,8 @@ class Body(Thing):
 
 	def tick(self):
 		self._decay()
+		if self.rested:
+			self._disconnect()
 		if self.dead:
 			logging.info("Body %d died", id(self))
 			self.map.things.remove(self)
@@ -143,10 +145,22 @@ class Body(Thing):
 		return (
 			super().dead or
 			(self.age / self.decay_rate) ** 4 > random()
-		) 
-	
+		)
+
+	@property
+	def rested(self):
+		return self.energy > self.MAX_ENERGY / (1.5 * random() + 1)
+
 	def _decay(self):
 		self.age += 1
+
+	def _disconnect(self):
+		"""
+		Disconnect from current spot
+		"""
+		self.next_spot = None
+		self.connection = None
+		self.abilities.move = True
 
 	def recharge(self, amount):
 		logging.debug("Body %d is recharging", id(self))
@@ -264,10 +278,10 @@ class EnergyBank(Thing):
 		self.connected.discard(thing)
 
 	def _drain(self, amount):
-		super()._drain(amount)
 		if self.empty:
 			logging.debug("EnergyBank %d is empty", id(self))
 			return 0
+		super()._drain(amount)
 		return amount
 
 	def accept(self, thing):
