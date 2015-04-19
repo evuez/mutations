@@ -5,6 +5,7 @@ from pyglet.gl import glEnd
 from pyglet.gl import glColor3f
 from pyglet.gl import glVertex2f
 from pyglet.gl import GL_TRIANGLE_FAN
+from mutations import Body
 
 
 def circle(cx, cy, r, color):
@@ -24,25 +25,25 @@ def circle(cx, cy, r, color):
 
 
 class MapView(object):
-	
+
 	def __init__(self, map_):
 		self.map = map_
 
 	def draw(self):
 		for thing in self.map.things:
-			try:
+			if isinstance(thing, Body):
 				color_rgb = hsv_to_rgb(
-					1 / 3 * thing.energy / thing.MAX_ENERGY,
+					1 / 3 * thing.energy / thing.max_energy,
 					1, 1
 				)
 				circle(
 					thing.x, thing.y,
-					thing.RADIUS, 
+					thing.RADIUS,
 					color_rgb
 				)
-			except AttributeError:
+			else:
 				circle(
 					thing.x, thing.y,
-					thing.RADIUS, 
+					thing.RADIUS,
 					[1 * thing.energy / thing.max_energy] * 3
 				)

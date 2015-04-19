@@ -1,6 +1,6 @@
 import logging
 from random import random
-from math import sin, cos, pi, atan2, sqrt
+from math import sin, cos, pi, atan2, sqrt, exp
 
 
 class NothingFoundError(Exception):
@@ -112,7 +112,6 @@ class Thing(object):
 
 
 class Body(Thing):
-	MAX_ENERGY = 10000
 
 	def __init__(self, map_):
 		super().__init__(map_)
@@ -138,7 +137,7 @@ class Body(Thing):
 
 	@property
 	def dying(self):
-		return self.energy < self.MAX_ENERGY / 3
+		return self.energy < self.max_energy / 3
 
 	@property
 	def dead(self):
@@ -149,7 +148,11 @@ class Body(Thing):
 
 	@property
 	def rested(self):
-		return self.energy > self.MAX_ENERGY / (1.5 * random() + 1)
+		return self.energy > self.max_energy / (1.5 * random() + 1)
+
+	@property
+	def max_energy(self):
+		return 4.8 * exp(3 / 4 - self.age / 2000) * (self.age + 500)
 
 	def _decay(self):
 		self.age += 1
@@ -164,7 +167,7 @@ class Body(Thing):
 
 	def recharge(self, amount):
 		logging.debug("Body %d is recharging", id(self))
-		self.energy = min(self.energy + amount, self.MAX_ENERGY)
+		self.energy = min(self.energy + amount, self.max_energy)
 
 	def move(self):
 		if not self.abilities.move:
