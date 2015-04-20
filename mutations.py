@@ -1,6 +1,7 @@
 import logging
-from random import random
+from random import random, gauss, getrandbits, Random, seed
 from math import sin, cos, pi, atan2, sqrt, exp
+from collections import deque
 
 
 class NothingFoundError(Exception):
@@ -44,7 +45,43 @@ class Map(object):
 				current, self.population
 			)
 		self.population = current
-		
+
+
+class DNA(object):
+	AVERAGE_LENGTH = 14
+	AVERAGE_MUTATION_RATE = 0.2
+	LENGTH = -1
+
+	def __init__(self, seed_):
+		seed(seed_)
+		self.length = 1 + self.gauss(gauss(0, 1), self.AVERAGE_LENGTH)
+		self.seeds = deque(maxlen=self.length)
+		self.genes = deque(maxlen=self.length)
+		self.mutation_rate = self.gauss(
+			gauss(0, 1),
+			self.AVERAGE_LENGTH, 
+			float
+		)
+		for s in range(self.length):
+			seeds.append(getrandbits(64))
+			genes.append(Random(seeds[-1]))
+
+	def gauss(self, gaussian, average, t=int):
+		if average < 0:
+			return -1
+		return max(min(t(average / 3.5 * gaussian + average), average * 2), 0)
+
+	def rotate(self):
+		self.seeds.rotate(-1)
+		self.genes.rotate(-1)
+
+	def next_int(self, min_, max_):
+		self.rotate()
+		return self.genes[0].randint(min_, max_)
+	
+	def next_float(self, max_=1):
+		self.rotate()
+		return self.genes[0].random() * max_
 
 
 class Abilities(object):
@@ -184,7 +221,7 @@ class Body(Thing):
 
 	def _disconnect(self, thing_class=None):
 		"""
-		Disconnect from current spot. If thing
+		Disconnect from current spot. If thing_class
 		specified, will only disconnect if current
 		spot is instance of thing.
 		"""
@@ -284,14 +321,16 @@ class Body(Thing):
 	def _try_duplicate(self):
 		if random() < 0.99:
 			return
-		self._drain(1500 * random() + 1000)
+		self._drain(1000 * random() + self.energy / 2)
 		if self.dead:
 			return
 		logging.debug("Body %d duplicated", id(self))
 		self.map.add(Body.copy(self))
 
 	def mutate(self):
-		pass
+		if random() < 0.999:
+			return
+
 
 
 class EnergyBank(Thing):
