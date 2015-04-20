@@ -1,4 +1,5 @@
 import logging
+from argparse import ArgumentParser
 from random import random
 
 from pyglet import app
@@ -12,25 +13,22 @@ from mutations import Body
 from mutations import EnergyBank
 
 
+parser = ArgumentParser(description='Start a Mutations simulation.')
+parser.add_argument('--width', dest='map_width', default=500, type=int)
+parser.add_argument('--height', dest='map_height', default=500, type=int)
+parser.add_argument('--banks', dest='banks', default=5, type=int)
+parser.add_argument('--bodies', dest='bodies', default=200, type=int)
+values = parser.parse_args()
+
 logging.basicConfig(level=logging.INFO)
 
 
-def test():
-	map_ = Map(1000, 1000)
-	for i in range(2):
-		map_.add(EnergyBank(map_))
-	for i in range(5):
-		map_.add(Body(map_))
-
-	for i in range(1000):
-		map_.tick()
-
-
 def test_view():
-	map_ = Map(500, 500)
-	for i in range(10):
+	global map_width
+	map_ = Map(values.map_width, values.map_height)
+	for i in range(values.banks):
 		map_.add(EnergyBank(map_, random()))
-	for i in range(10):
+	for i in range(values.bodies):
 		map_.add(Body(map_, random()))
 
 	def update(dt):
