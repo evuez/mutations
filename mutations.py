@@ -21,13 +21,30 @@ class Map(object):
 		self.width = width
 		self.height = height
 		self.things = []
+		self.population = 0
 
 	def tick(self):
+		self.census()
 		for thing in self.things:
 			thing.tick()
 
 	def add(self, thing):
 		self.things.append(thing)
+
+	def census(self):
+		current = len(self.things)
+		if current > self.population:
+			logging.info(
+				"Population increased: %d (was %d)",
+				current, self.population
+			)
+		if current < self.population:
+			logging.info(
+				"Population decreased: %d (was %d)", 
+				current, self.population
+			)
+		self.population = current
+		
 
 
 class Abilities(object):
@@ -124,16 +141,24 @@ class Body(Thing):
 
 	def tick(self):
 		self._decay()
+		self._try_duplicate()
 		if self.rested:
-			self._disconnect()
+			self._disconnect(EnergyBank)
 		if self.dead:
-			logging.info("Body %d died", id(self))
+			logging.debug("Body %d died", id(self))
 			self.map.things.remove(self)
 		elif self.dying:
 			logging.debug("Body %d is dying", id(self))
 			self.survive()
 		else:
 			self.move()
+
+	@classmethod
+	def copy(cls, body):
+		new_body = cls(body.map)
+		new_body.energy = body.energy
+		new_body.x, new_body.y = body.x, body.y
+		return new_body
 
 	@property
 	def dying(self):
@@ -157,13 +182,16 @@ class Body(Thing):
 	def _decay(self):
 		self.age += 1
 
-	def _disconnect(self):
+	def _disconnect(self, thing_class=None):
 		"""
-		Disconnect from current spot
+		Disconnect from current spot. If thing
+		specified, will only disconnect if current
+		spot is instance of thing.
 		"""
-		self.next_spot = None
-		self.connection = None
-		self.abilities.move = True
+		if isinstance(self.connection, thing_class):
+			self.next_spot = None
+			self.connection = None
+			self.abilities.move = True
 
 	def recharge(self, amount):
 		logging.debug("Body %d is recharging", id(self))
@@ -188,7 +216,7 @@ class Body(Thing):
 		)
 		self._forward()
 		if self.soft_connect(spot.thing):
-			logging.info("Body %d reached %s %d",
+			logging.debug("Body %d reached %s %d",
 				id(self),
 				spot.thing.__class__.__name__,
 				id(spot.thing)
@@ -252,6 +280,15 @@ class Body(Thing):
 			self.direction += 2 * pi
 		while self.direction > 2* pi:
 			self.direction -= 2 * pi
+
+	def _try_duplicate(self):
+		if random() < 0.99:
+			return
+		self._drain(1500 * random() + 1000)
+		if self.dead:
+			return
+		logging.debug("Body %d duplicated", id(self))
+		self.map.add(Body.copy(self))
 
 	def mutate(self):
 		pass
