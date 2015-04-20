@@ -79,9 +79,13 @@ class DNA(object):
 		self.seeds.rotate(-1)
 		self.genes.rotate(-1)
 
-	def next(self):
+	def next_float(self, max_=1):
 		self.rotate()
-		return self.genes[0].random()
+		return self.genes[0].random() * max_
+
+	def next_bool(self):
+		self.rotate()
+		return bool(self.genes[0].getrandbits(1))
 
 
 class Abilities(object):
@@ -118,9 +122,9 @@ class Thing(object):
 		self.map = map_
 		self.dna = DNA(seed_)
 		self.energy = None
-		self.x = self.dna.next() * self.map.width
-		self.y = self.dna.next() * self.map.height
-		self.direction = self.dna.next() * pi * 2
+		self.x = self.dna.next_float(self.map.width)
+		self.y = self.dna.next_float(self.map.height)
+		self.direction = self.dna.next_float(pi * 2)
 
 	@property
 	def dead(self):
@@ -171,8 +175,8 @@ class Body(Thing):
 	def __init__(self, map_, seed_):
 		super().__init__(map_, seed_)
 		self.age = 0
-		self.energy = 6500 + self.dna.next() * 1000
-		self.decay_rate = 8000 + self.dna.next() * 5000
+		self.energy = 6500 + self.dna.next_float(1000)
+		self.decay_rate = 8000 + self.dna.next_float(5000)
 		self.abilities = Abilities()
 		self.connection = None
 		self.next_spot = None
@@ -206,12 +210,15 @@ class Body(Thing):
 	def dead(self):
 		return (
 			super().dead or
-			(self.age / self.decay_rate) ** 4 > self.dna.next()
+			(self.age / self.decay_rate) ** 4 > self.dna.next_float()
 		)
 
 	@property
 	def rested(self):
-		return self.energy > self.max_energy / (1.5 * self.dna.next() + 1)
+		return (
+			self.energy >
+			self.max_energy / (self.dna.next_float(1.5) + 1)
+		)
 
 	@property
 	def max_energy(self):
@@ -238,7 +245,7 @@ class Body(Thing):
 	def move(self):
 		if not self.abilities.move:
 			return
-		if self.dna.next() > 0.7:
+		if self.dna.next_float() > 0.7:
 			self._turn()
 		self._forward()
 
@@ -295,8 +302,11 @@ class Body(Thing):
 				return thing
 			if nearest is None:
 				nearest = thing
-				dist_nearest = (thing.x - self.x)**2 + (thing.y - self.y)**2
-			dist_current = (thing.x - self.x)**2 + (thing.y - self.y)**2
+				dist_nearest = (
+					(thing.x - self.x) ** 2 +
+					(thing.y - self.y) ** 2
+				)
+			dist_current = (thing.x - self.x) ** 2 + (thing.y - self.y) ** 2
 			if dist_current < dist_nearest:
 				nearest = thing
 				dist_nearest = dist_current
@@ -304,32 +314,32 @@ class Body(Thing):
 
 	def _forward(self):
 		logging.debug("Body %d is moving forward", id(self))
-		speed = self.dna.next() * 10 + 10
+		speed = self.dna.next_float(10) + 10
 		self._drain(speed * 2)
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
 	def _turn(self):
 		logging.debug("Body %d is turning", id(self))
-		speed = self.dna.next() * 0.6 - 0.3
+		speed = self.dna.next_float(0.6) - 0.3
 		self._drain(speed)
 		self.direction += speed
 		while self.direction < 0:
 			self.direction += 2 * pi
-		while self.direction > 2* pi:
+		while self.direction > 2 * pi:
 			self.direction -= 2 * pi
 
 	def _try_duplicate(self):
-		if self.dna.next() < 0.99:
+		if self.dna.next_float() < 0.99:
 			return
-		self._drain(1000 * self.dna.next() + self.energy / 2)
+		self._drain(1000 * self.dna.next_float() + self.energy / 2)
 		if self.dead:
 			return
 		logging.debug("Body %d duplicated", id(self))
 		self.map.add(Body.copy(self))
 
 	def mutate(self):
-		if self.dna.next() < 0.999:
+		if self.dna.next_float() < 0.999:
 			return
 
 
@@ -339,10 +349,10 @@ class EnergyBank(Thing):
 
 	def __init__(self, map_, seed_):
 		super().__init__(map_, seed_)
-		self.energy = 20000 + self.dna.next() * 10000
+		self.energy = 20000 + self.dna.next_float(10000)
 		self.max_energy = self.energy
 		self.connected = set()
-		self.rate = self.dna.next() * 100
+		self.rate = self.dna.next_float(100)
 
 	@property
 	def empty(self):
@@ -382,7 +392,7 @@ class EnergyBank(Thing):
 			"EnergyBank %d is recharging, %0.2f remaining",
 			id(self), self.energy
 		)
-		self.energy += self.max_energy * self.dna.next() * 0.005
+		self.energy += self.max_energy * self.dna.next_float(0.005)
 		self.energy = min(self.energy, self.max_energy)
 
 	def _supply(self):
