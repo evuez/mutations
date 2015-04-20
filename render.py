@@ -26,10 +26,9 @@ def circle(cx, cy, r, color):
 	glEnd()
 
 
-def square(x, y, size, color):
-	size /= 2
-	x1, y1 = x - size, y - size
-	x2, y2 = x + size, y + size
+def bar(x, y, size, color):
+	x1, x2 = x, x + size
+	y1, y2 = 0, y
 
 	glColor3f(*color)
 	glBegin(GL_POLYGON)
@@ -69,16 +68,16 @@ class GraphView(object):
 
 	def __init__(self, map_):
 		self.map = map_
-		self.censuses = deque(maxlen=200)
+		self.censuses = deque(maxlen=500)
 
 	def draw(self):
 		self.censuses.append(self.map.census(False))
 		max_ = max(self.censuses)
 		count = len(self.censuses)
 		for k, census in enumerate(self.censuses):
-			square(
+			bar(
 				k * (500 / count),
 				census * (100 / max_),
-				1,
+				500 / count,
 				(1, 1, 1)
 			)
