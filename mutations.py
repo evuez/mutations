@@ -23,8 +23,10 @@ class Map(object):
 		self.height = height
 		self.things = []
 		self.population = 0
+		self.age = 0
 
 	def tick(self):
+		self.age += 1
 		self.census()
 		for thing in self.things:
 			thing.tick()
@@ -32,8 +34,10 @@ class Map(object):
 	def add(self, thing):
 		self.things.append(thing)
 
-	def census(self):
+	def census(self, report=True):
 		current = len(self.things)
+		if not report:
+			return current
 		if current > self.population:
 			logging.info(
 				"Population increased: %d (was %d)",
@@ -341,7 +345,6 @@ class Body(Thing):
 	def mutate(self):
 		if self.dna.next_float() < 0.999:
 			return
-
 
 
 class EnergyBank(Thing):
