@@ -1,5 +1,5 @@
 import logging
-from random import random, gauss, getrandbits, Random, seed
+from random import Random
 from math import sin, cos, pi, atan2, sqrt, exp
 from collections import deque
 
