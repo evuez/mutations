@@ -1,5 +1,5 @@
 import logging
-from random import getrandbits, seed
+from random import random
 
 from pyglet import app
 from pyglet.window import Window
@@ -27,12 +27,11 @@ def test():
 
 
 def test_view():
-	# seed(5)
 	map_ = Map(500, 500)
-	for i in range(1):
-		map_.add(EnergyBank(map_))
 	for i in range(10):
-		map_.add(Body(map_, getrandbits(32)))
+		map_.add(EnergyBank(map_, random()))
+	for i in range(10):
+		map_.add(Body(map_, random()))
 
 	def update(dt):
 		map_.tick()
