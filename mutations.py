@@ -114,12 +114,13 @@ class Spot(object):
 class Thing(object):
 	RADIUS = 2
 
-	def __init__(self, map_):
+	def __init__(self, map_, seed_):
 		self.map = map_
+		self.dna = DNA(seed_)
 		self.energy = None
-		self.x = random() * self.map.width
-		self.y = random() * self.map.height
-		self.direction = random() * pi * 2
+		self.x = self.dna.next() * self.map.width
+		self.y = self.dna.next() * self.map.height
+		self.direction = self.dna.next() * pi * 2
 
 	@property
 	def dead(self):
@@ -168,16 +169,13 @@ class Thing(object):
 class Body(Thing):
 
 	def __init__(self, map_, seed_):
-		super().__init__(map_)
-		self.dna = DNA(seed_)
+		super().__init__(map_, seed_)
 		self.age = 0
 		self.energy = 6500 + self.dna.next() * 1000
 		self.decay_rate = 8000 + self.dna.next() * 5000
 		self.abilities = Abilities()
 		self.connection = None
 		self.next_spot = None
-		self.x = self.dna.next() * self.map.width
-		self.y = self.dna.next() * self.map.height
 
 	def tick(self):
 		self._decay()
@@ -339,12 +337,12 @@ class Body(Thing):
 class EnergyBank(Thing):
 	RADIUS = 10
 
-	def __init__(self, map_):
-		super().__init__(map_)
-		self.energy = 20000 + random() * 10000
+	def __init__(self, map_, seed_):
+		super().__init__(map_, seed_)
+		self.energy = 20000 + self.dna.next() * 10000
 		self.max_energy = self.energy
 		self.connected = set()
-		self.rate = random() * 100
+		self.rate = self.dna.next() * 100
 
 	@property
 	def empty(self):
@@ -384,7 +382,7 @@ class EnergyBank(Thing):
 			"EnergyBank %d is recharging, %0.2f remaining",
 			id(self), self.energy
 		)
-		self.energy += self.max_energy * random() * 0.005
+		self.energy += self.max_energy * self.dna.next() * 0.005
 		self.energy = min(self.energy, self.max_energy)
 
 	def _supply(self):
