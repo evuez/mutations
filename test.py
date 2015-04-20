@@ -8,6 +8,7 @@ from pyglet.clock import schedule_interval
 from pyglet.gl import glClearColor
 
 from render import MapView
+from render import GraphView
 from mutations import Map
 from mutations import Body
 from mutations import EnergyBank
@@ -34,15 +35,25 @@ def test_view():
 	def update(dt):
 		map_.tick()
 
-	window = Window(map_.width, map_.height)
+
+	simulation = Window(map_.width, map_.height)
 	map_view = MapView(map_)
 	schedule_interval(update, 0.1)
 
-	@window.event
+	@simulation.event
 	def on_draw():
 		glClearColor(.5, .6, .6, 1)
-		window.clear()
+		simulation.clear()
 		map_view.draw()
+
+
+	graph = Window(500, 100)
+	graph_view = GraphView(map_)
+
+	@graph.event
+	def on_draw():
+		graph.clear()
+		graph_view.draw()
 
 
 	app.run()
