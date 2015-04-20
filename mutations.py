@@ -53,18 +53,22 @@ class DNA(object):
 	LENGTH = -1
 
 	def __init__(self, seed_):
-		seed(seed_)
-		self.length = 1 + self.gauss(gauss(0, 1), self.AVERAGE_LENGTH)
-		self.seeds = deque(maxlen=self.length)
-		self.genes = deque(maxlen=self.length)
+		self.seed = seed_
+		init_rand = Random(self.seed)
+		self.length = 1 + self.gauss(
+			init_rand.gauss(0, 1),
+			self.AVERAGE_LENGTH
+		)
 		self.mutation_rate = self.gauss(
-			gauss(0, 1),
+			init_rand.gauss(0, 1),
 			self.AVERAGE_LENGTH, 
 			float
 		)
+		self.seeds = deque(maxlen=self.length)
+		self.genes = deque(maxlen=self.length)
 		for s in range(self.length):
-			seeds.append(getrandbits(64))
-			genes.append(Random(seeds[-1]))
+			self.seeds.append(init_rand.getrandbits(64))
+			self.genes.append(Random(self.seeds[-1]))
 
 	def gauss(self, gaussian, average, t=int):
 		if average < 0:
@@ -75,13 +79,9 @@ class DNA(object):
 		self.seeds.rotate(-1)
 		self.genes.rotate(-1)
 
-	def next_int(self, min_, max_):
+	def next(self):
 		self.rotate()
-		return self.genes[0].randint(min_, max_)
-	
-	def next_float(self, max_=1):
-		self.rotate()
-		return self.genes[0].random() * max_
+		return self.genes[0].random()
 
 
 class Abilities(object):
@@ -167,14 +167,17 @@ class Thing(object):
 
 class Body(Thing):
 
-	def __init__(self, map_):
+	def __init__(self, map_, seed_):
 		super().__init__(map_)
+		self.dna = DNA(seed_)
 		self.age = 0
-		self.energy = 6500 + random() * 1000
-		self.decay_rate = 8000 + random() * 5000
+		self.energy = 6500 + self.dna.next() * 1000
+		self.decay_rate = 8000 + self.dna.next() * 5000
 		self.abilities = Abilities()
 		self.connection = None
 		self.next_spot = None
+		self.x = self.dna.next() * self.map.width
+		self.y = self.dna.next() * self.map.height
 
 	def tick(self):
 		self._decay()
@@ -192,7 +195,7 @@ class Body(Thing):
 
 	@classmethod
 	def copy(cls, body):
-		new_body = cls(body.map)
+		new_body = cls(body.map, body.dna.seed)
 		new_body.energy = body.energy
 		new_body.x, new_body.y = body.x, body.y
 		return new_body
@@ -205,12 +208,12 @@ class Body(Thing):
 	def dead(self):
 		return (
 			super().dead or
-			(self.age / self.decay_rate) ** 4 > random()
+			(self.age / self.decay_rate) ** 4 > self.dna.next()
 		)
 
 	@property
 	def rested(self):
-		return self.energy > self.max_energy / (1.5 * random() + 1)
+		return self.energy > self.max_energy / (1.5 * self.dna.next() + 1)
 
 	@property
 	def max_energy(self):
@@ -237,7 +240,7 @@ class Body(Thing):
 	def move(self):
 		if not self.abilities.move:
 			return
-		if random() > 0.7:
+		if self.dna.next() > 0.7:
 			self._turn()
 		self._forward()
 
@@ -303,14 +306,14 @@ class Body(Thing):
 
 	def _forward(self):
 		logging.debug("Body %d is moving forward", id(self))
-		speed = random() * 10 + 10
+		speed = self.dna.next() * 10 + 10
 		self._drain(speed * 2)
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
 	def _turn(self):
 		logging.debug("Body %d is turning", id(self))
-		speed = random() * 0.6 - 0.3
+		speed = self.dna.next() * 0.6 - 0.3
 		self._drain(speed)
 		self.direction += speed
 		while self.direction < 0:
@@ -319,16 +322,16 @@ class Body(Thing):
 			self.direction -= 2 * pi
 
 	def _try_duplicate(self):
-		if random() < 0.99:
+		if self.dna.next() < 0.99:
 			return
-		self._drain(1000 * random() + self.energy / 2)
+		self._drain(1000 * self.dna.next() + self.energy / 2)
 		if self.dead:
 			return
 		logging.debug("Body %d duplicated", id(self))
 		self.map.add(Body.copy(self))
 
 	def mutate(self):
-		if random() < 0.999:
+		if self.dna.next() < 0.999:
 			return
 
 
