@@ -45,7 +45,7 @@ class Map(object):
 			)
 		if current < self.population:
 			logging.info(
-				"Population decreased: %d (was %d)", 
+				"Population decreased: %d (was %d)",
 				current, self.population
 			)
 		self.population = current
@@ -65,7 +65,7 @@ class DNA(object):
 		)
 		self.mutation_rate = self.gauss(
 			init_rand.gauss(0, 1),
-			self.AVERAGE_LENGTH, 
+			self.AVERAGE_LENGTH,
 			float
 		)
 		self.seeds = deque(maxlen=self.length)
@@ -83,6 +83,12 @@ class DNA(object):
 		self.seeds.rotate(-1)
 		self.genes.rotate(-1)
 
+	def mutate(self, seed_):
+		gen = Random(seed_)
+		if gen.random() < self.mutation_rate:
+			logging.warning('Mutation happened')
+			self.genes[0] = Random(gen.getrandbits(64))
+
 	def next_float(self, max_=1):
 		self.rotate()
 		return self.genes[0].random() * max_
@@ -90,6 +96,11 @@ class DNA(object):
 	def next_bool(self):
 		self.rotate()
 		return bool(self.genes[0].getrandbits(1))
+
+	def next_long(self):
+		self.rotate()
+		return self.genes[0].getrandbits(32)
+
 
 
 class Abilities(object):
@@ -125,6 +136,7 @@ class Thing(object):
 	def __init__(self, map_, seed_):
 		self.map = map_
 		self.dna = DNA(seed_)
+		self.dna.mutate(self.dna.next_long())
 		self.energy = None
 		self.x = self.dna.next_float(self.map.width)
 		self.y = self.dna.next_float(self.map.height)
