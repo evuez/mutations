@@ -74,6 +74,9 @@ class DNA(object):
 			self.seeds.append(init_rand.getrandbits(64))
 			self.genes.append(Random(self.seeds[-1]))
 
+		def __str__(self):
+			return str(id(self))
+
 	def gauss(self, gaussian, average, t=int):
 		if average < 0:
 			return -1
@@ -235,6 +238,10 @@ class Body(Thing):
 			self.energy >
 			self.max_energy / (self.dna.next_float(1.5) + 1)
 		)
+
+	@property
+	def sick(self):
+		return self.dna.next_float > 0.997
 
 	@property
 	def max_energy(self):
