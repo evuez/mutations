@@ -104,6 +104,10 @@ class DNA(object):
 		self.rotate()
 		return self.genes[0].getrandbits(32)
 
+	def next_choice(self, seq):
+		self.rotate()
+		return self.genes[0].choice(seq)
+
 
 
 class Abilities(object):

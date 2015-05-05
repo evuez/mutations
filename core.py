@@ -1,6 +1,22 @@
 from logging import debug, info
 
 
+class Brain(object):
+	ACTIONS = [
+		Move,
+		Find,
+		Duplicate,
+		Rest
+	]
+
+	def __init__(self, body):
+		self.body = body
+		self.actions = [a(self.body) for a in self.ACTIONS]
+
+	def tick(self):
+		self.dna.next_choice(self.actions).tick()
+
+
 class Action(object):
 	def __init__(self, body):
 		self.body = body
