@@ -3,10 +3,11 @@ from logging import debug, info
 
 class Brain(object):
 	ACTIONS = [
-		Move,
 		Find,
 		Duplicate,
-		Rest
+		Rest,
+		Turn,
+		Forward
 	]
 
 	def __init__(self, body):
