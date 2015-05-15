@@ -1,12 +1,19 @@
 import math
 from collections import deque
 from colorsys import hsv_to_rgb
+from ctypes import ArgumentError
 from pyglet.gl import glBegin
 from pyglet.gl import glEnd
+from pyglet.gl import glEnable
+from pyglet.gl import glBlendFunc
 from pyglet.gl import glColor3f
+from pyglet.gl import glColor4f
 from pyglet.gl import glVertex2f
 from pyglet.gl import GL_TRIANGLE_FAN
 from pyglet.gl import GL_POLYGON
+from pyglet.gl import GL_BLEND
+from pyglet.gl import GL_SRC_ALPHA
+from pyglet.gl import GL_ONE_MINUS_SRC_ALPHA
 from mutations import Body
 
 
@@ -18,8 +25,13 @@ def circle(cx, cy, r, color):
 
 	x, y = r, 0
 
+	glEnable(GL_BLEND)
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glBegin(GL_TRIANGLE_FAN)
-	glColor3f(*color)
+	try:
+		glColor3f(*color)
+	except ArgumentError:
+		glColor4f(*color)
 	for counter in range(segments):
 		glVertex2f(x + cx, y + cy)
 		x, y = cos * x - sin * y, sin * x + cos * y
@@ -54,7 +66,7 @@ class MapView(object):
 				circle(
 					thing.x, thing.y,
 					thing.RADIUS,
-					color_rgb
+					thing.color + (thing.energy / thing.max_energy + 0.3,)
 				)
 			else:
 				circle(

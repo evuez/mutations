@@ -203,6 +203,7 @@ class Body(Thing):
 		self.abilities = Abilities()
 		self.connection = None
 		self.next_spot = None
+		self.color = tuple(self.dna.next_float() for x in range(3))
 
 	def tick(self):
 		self._decay()
