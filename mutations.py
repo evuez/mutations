@@ -148,6 +148,7 @@ class Thing(object):
 		self.x = self.dna.next_float(self.map.width)
 		self.y = self.dna.next_float(self.map.height)
 		self.direction = self.dna.next_float(pi * 2)
+		# self.weight = self.dna.next_float(5)
 
 	@property
 	def dead(self):
