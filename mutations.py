@@ -154,6 +154,21 @@ class Thing(object):
 	def dead(self):
 		return self.energy < 1
 
+	@property
+	def x(self):
+		return self._x
+	@x.setter
+	def x(self, value):
+		self._x = min(max(value, self.RADIUS), self.map.width - self.RADIUS)
+
+	@property
+	def y(self):
+		return self._y
+	@y.setter
+	def y(self, value):
+		self._y = min(max(value, self.RADIUS), self.map.height - self.RADIUS)
+
+
 	def tick(self):
 		raise NotImplementedError
 
@@ -344,16 +359,6 @@ class Body(Thing):
 		logging.debug("Body %d is moving forward", id(self))
 		speed = self.dna.next_float(10) + 10
 		self._drain(speed * 2)
-
-		out = (
-			(self.x + speed * cos(self.direction)) < 0 or
-			(self.x + speed * cos(self.direction)) > self.map.width or
-			(self.y + speed * sin(self.direction)) < 0 or
-			(self.y + speed * sin(self.direction)) > self.map.height
-		)
-		if out:
-			self.direction += pi
-
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
