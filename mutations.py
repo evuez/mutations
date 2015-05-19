@@ -168,7 +168,6 @@ class Thing(object):
 	def y(self, value):
 		self._y = min(max(value, self.RADIUS), self.map.height - self.RADIUS)
 
-
 	def tick(self):
 		raise NotImplementedError
 
