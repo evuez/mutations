@@ -347,6 +347,11 @@ class Body(Thing):
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
 
+		self.x = self.x if self.x < self.map.width else 0
+		self.x = self.x if self.x > 0 else self.map.width
+		self.y = self.y if self.y < self.map.height else 0
+		self.y = self.y if self.y > 0 else self.map.height
+
 	def _turn(self):
 		logging.debug("Body %d is turning", id(self))
 		speed = self.dna.next_float(0.6) - 0.3
