@@ -344,13 +344,18 @@ class Body(Thing):
 		logging.debug("Body %d is moving forward", id(self))
 		speed = self.dna.next_float(10) + 10
 		self._drain(speed * 2)
+
+		out = (
+			(self.x + speed * cos(self.direction)) < 0 or
+			(self.x + speed * cos(self.direction)) > self.map.width or
+			(self.y + speed * sin(self.direction)) < 0 or
+			(self.y + speed * sin(self.direction)) > self.map.height
+		)
+		if out:
+			self.direction += pi
+
 		self.x += speed * cos(self.direction)
 		self.y += speed * sin(self.direction)
-
-		self.x = self.x if self.x < self.map.width else 0
-		self.x = self.x if self.x > 0 else self.map.width
-		self.y = self.y if self.y < self.map.height else 0
-		self.y = self.y if self.y > 0 else self.map.height
 
 	def _turn(self):
 		logging.debug("Body %d is turning", id(self))
