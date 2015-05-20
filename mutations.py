@@ -65,7 +65,7 @@ class DNA(object):
 		)
 		self.mutation_rate = self.gauss(
 			init_rand.gauss(0, 1),
-			self.AVERAGE_LENGTH,
+			self.AVERAGE_MUTATION_RATE,
 			float
 		)
 		self.seeds = deque(maxlen=self.length)
@@ -379,10 +379,6 @@ class Body(Thing):
 			return
 		logging.debug("Body %d duplicated", id(self))
 		self.map.add(Body.copy(self))
-
-	def mutate(self):
-		if self.dna.next_float() < 0.999:
-			return
 
 
 class EnergyBank(Thing):
