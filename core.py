@@ -38,7 +38,20 @@ class Find(Action):
 
 
 class Duplicate(Action):
-	pass
+	def log(self):
+		debug("Body %s duplicated", self.body.dna)
+
+	def tick(self):
+		if self.body.dna.next_float() < 0.99:
+			return
+		self.body.drain(
+			1000 * self.body.dna.next_float() +
+			self.body.energy / 2
+		)
+		if self.dead:
+			return
+		self.body.map.add(Body.copy(self.body))
+
 
 
 class Turn(Action):
