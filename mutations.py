@@ -2,6 +2,7 @@ import logging
 from random import Random
 from math import sin, cos, pi, atan2, sqrt, exp
 from collections import deque
+from functions import gaussian
 
 
 class NothingFoundError(Exception):
@@ -54,58 +55,49 @@ class Map(object):
 class DNA(object):
 	AVERAGE_LENGTH = 14
 	AVERAGE_MUTATION_RATE = 0.2
-	LENGTH = -1
 
-	def __init__(self, seed_):
-		self.seed = seed_
-		init_rand = Random(self.seed)
-		self.length = 1 + self.gauss(
-			init_rand.gauss(0, 1),
-			self.AVERAGE_LENGTH
-		)
-		self.mutation_rate = self.gauss(
-			init_rand.gauss(0, 1),
+	def __init__(self, seed):
+		self.seed = seed
+		_rng = Random(self.seed)
+		self.length = 1 + gaussian(_rng.gauss(0, 1), self.AVERAGE_LENGTH)
+		self.mutation_rate = gaussian(
+			_rng.gauss(0, 1),
 			self.AVERAGE_MUTATION_RATE,
 			float
 		)
+		# seeds will be used for faster copy later on.
 		self.seeds = deque(maxlen=self.length)
 		self.genes = deque(maxlen=self.length)
-		for s in range(self.length):
-			self.seeds.append(init_rand.getrandbits(64))
+		for _ in range(self.length):
+			self.seeds.append(_rng.getrandbits(64))
 			self.genes.append(Random(self.seeds[-1]))
 
 		def __str__(self):
 			return str(id(self))
 
-	def gauss(self, gaussian, average, t=int):
-		if average < 0:
-			return -1
-		return max(min(t(average / 3.5 * gaussian + average), average * 2), 0)
-
-	def rotate(self):
+	def _rotate(self):
 		self.seeds.rotate(-1)
 		self.genes.rotate(-1)
 
-	def mutate(self, seed_):
-		gen = Random(seed_)
-		if gen.random() < self.mutation_rate:
+	def mutate(self):
+		if self.next_float() < self.mutation_rate:
 			logging.warning('Mutation happened')
-			self.genes[0] = Random(gen.getrandbits(64))
+			self.genes[0] = Random(self.seeds[0] = self.next_long())
 
 	def next_float(self, max_=1):
-		self.rotate()
+		self._rotate()
 		return self.genes[0].random() * max_
 
 	def next_bool(self):
-		self.rotate()
+		self._rotate()
 		return bool(self.genes[0].getrandbits(1))
 
 	def next_long(self):
-		self.rotate()
-		return self.genes[0].getrandbits(32)
+		self._rotate()
+		return self.genes[0].getrandbits(64)
 
 	def next_choice(self, seq):
-		self.rotate()
+		self._rotate()
 		return self.genes[0].choice(seq)
 
 
@@ -140,10 +132,10 @@ class Spot(object):
 class Thing(object):
 	RADIUS = 2
 
-	def __init__(self, map_, seed_):
+	def __init__(self, map_, seed):
 		self.map = map_
-		self.dna = DNA(seed_)
-		self.dna.mutate(self.dna.next_long())
+		self.dna = DNA(seed)
+		self.dna.mutate()
 		self.energy = None
 		self.x = self.dna.next_float(self.map.width)
 		self.y = self.dna.next_float(self.map.height)
@@ -210,8 +202,8 @@ class Thing(object):
 
 class Body(Thing):
 
-	def __init__(self, map_, seed_):
-		super().__init__(map_, seed_)
+	def __init__(self, map_, seed):
+		super().__init__(map_, seed)
 		self.age = 0
 		self.energy = 6500 + self.dna.next_float(1000)
 		self.decay_rate = 8000 + self.dna.next_float(5000)
@@ -384,8 +376,8 @@ class Body(Thing):
 class EnergyBank(Thing):
 	RADIUS = 10
 
-	def __init__(self, map_, seed_):
-		super().__init__(map_, seed_)
+	def __init__(self, map_, seed):
+		super().__init__(map_, seed)
 		self.energy = 20000 + self.dna.next_float(10000)
 		self.max_energy = self.energy
 		self.connected = set()
