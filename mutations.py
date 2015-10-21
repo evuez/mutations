@@ -82,7 +82,8 @@ class DNA(object):
 	def mutate(self):
 		if self.next_float() < self.mutation_rate:
 			logging.warning('Mutation happened')
-			self.genes[0] = Random(self.seeds[0] = self.next_long())
+			self.seeds[0] = self.next_long()
+			self.genes[0] = Random(self.seeds[0])
 
 	def next_float(self, max_=1):
 		self._rotate()
@@ -436,3 +437,53 @@ class EnergyBank(Thing):
 	def tick(self):
 		self.recharge()
 		self._supply()
+
+
+class God(object):
+	def __init__(self, seed=None):
+		self._rng = Random(seed)
+
+	def next_float(self, max_=1):
+		return self._rng.random() * max_
+
+	def next_int(self):
+		return self._rng.randint()
+
+	def next_bool(self):
+		return self._rng.getrandbits(1)
+
+	def next_long(self):
+		return self._rng.getrandbits(64)
+
+	def next_rng(self):
+		return Random(self.next_long())
+
+	def next_gauss(self, mu, sigma, avg):
+		return -1 if avg < 0 else max(min(
+			avg / 3.5 * self._rng.gauss(mu, sigma) + avg, avg * 2
+		), 0)
+
+	def next_choice(self, seq):
+		return self._rng.choice(seq)
+
+
+class Gas(object):
+	AVERAGE_SCATTER_RATE = 0.8
+
+	def __init__(self, x, y):
+		self._scatter_rate = God.next_gauss(0, 1, self.AVERAGE_SPARSE_RATE)
+		self.particles = God.next_int(10)
+		self.x = x
+		self.y = y
+		self._batch = []
+
+	def tick(self):
+		if God.next_float() > self._scatter_rate:
+			self.particles += God.next_int(10)
+			self.scatter()
+
+	def scatter(self):
+		for p in range(self.particles):
+			t, u = God.next_float(2 * pi), God.next_float() + God.next_float()
+			radius = 2 - u if u > 1 else u
+			self._batch.append((radius * cos(t), radius * sin(t))

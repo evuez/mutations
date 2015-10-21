@@ -26,6 +26,19 @@ def circle(cx, cy, r, color):
 	glEnd()
 
 
+def square(x, y, radius, color):
+	x1, x2 = x - radius, x + radius
+	y1, y2 = y - radius, y + radius
+
+	glColor3f(*color)
+	glBegin(GL_POLYGON)
+	glVertex2f(x1, y1)
+	glVertex2f(x1, y2)
+	glVertex2f(x2, y2)
+	glVertex2f(x2, y1)
+	glEnd()
+
+
 def bar(x, y, size, color):
 	x1, x2 = x, x + size
 	y1, y2 = 0, y
