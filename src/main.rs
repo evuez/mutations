@@ -3,9 +3,21 @@ extern crate rand;
 
 
 use std::vec::Vec;
+use std::f32::consts::PI;
 use num::FromPrimitive;
 use rand::distributions::{Normal, Sample};
 use rand::{Rand, Rng, ThreadRng};
+
+
+const MAP_WIDTH: f32 = 500.0;
+const MAP_HEIGHT: f32 = 500.0;
+
+
+struct Position {
+    x: f32,
+    y: f32,
+    d: f32,
+}
 
 
 struct God {
@@ -21,6 +33,24 @@ struct Dna {
     current: i32,
 }
 
+struct Body {
+    dna: Dna,
+    position: Position,
+    age: i32,
+    energy: f32,
+    decay: f32,
+}
+
+
+impl Position {
+    fn new_random(dna: &mut Dna) -> Position {
+        Position {
+            x: dna.next::<f32>() * MAP_WIDTH,
+            y: dna.next::<f32>() * MAP_WIDTH,
+            d: dna.next::<f32>() * PI,
+        }
+    }
+}
 
 impl God {
     fn new(seed: u32) -> God {
@@ -67,6 +97,20 @@ impl Dna {
         }
 
         self.genes[self.current as usize].gen::<T>()
+    }
+}
+
+impl Body {
+    fn new(seed: u32) -> Body {
+        let mut dna = Dna::new(seed);
+
+        Body {
+            position: Position::new_random(&mut dna),
+            age: 0,
+            energy: 6500.0 + dna.next::<f32>() * 1000.0,
+            decay: 8000.0 + dna.next::<f32>() * 5000.0,
+            dna: dna,
+        }
     }
 }
 
