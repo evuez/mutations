@@ -16,10 +16,4 @@ impl God {
             seed: seed
         }
     }
-
-    pub fn gaussian<T: FromPrimitive>() -> T {
-        FromPrimitive::from_f64(
-            Normal::new(2.0, 3.5).sample(&mut rand::thread_rng())
-        ).expect("Cannot convert to given type")
-    }
 }
