@@ -12,8 +12,8 @@ use universe::God;
 
 const MAP_WIDTH: f32 = 500.0;
 const MAP_HEIGHT: f32 = 500.0;
-const AVERAGE_LENGTH: f64 = 14.0;
-const AVERAGE_MUTATION_RATE: f64 = 0.2;
+const AVERAGE_LENGTH: f64 = 14.0; // TMP
+const AVERAGE_MUTATION_RATE: f64 = 0.2; // TMP
 
 
 pub struct Pose {
@@ -57,6 +57,10 @@ impl Display for Pose {
 }
 
 impl Dna {
+    // On 10th of December it should be OK to use associated constants.
+    // const AVERAGE_LENGTH: f64 = 14.0;
+    // const AVERAGE_MUTATION_RATE: f64 = 0.2;
+
     pub fn new(seed: [u32; 4]) -> Dna {
         let mut rng = XorShiftRng::from_seed(seed);
 
