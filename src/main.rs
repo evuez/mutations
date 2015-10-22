@@ -8,13 +8,16 @@ use rand::distributions::{Normal, Sample};
 use rand::{Rand, Rng, ThreadRng};
 
 mod functions;
-mod things;
+mod world;
 mod universe;
 
+// TODO
+// Move world::{Dna, Body} to world::things
+// Move functions to universe
 
 fn main() {
-    let god = universe::God::new(123);
-    let mut body = things::Body::new([13; 4]);
+    let god = universe::God::new([13; 4]);
+    let mut body = world::Body::new([13; 4]);
 
     let mut counter = 0;
 

@@ -1,6 +1,3 @@
-extern crate num;
-extern crate rand;
-
 use std::f32::consts::PI;
 use std::fmt::{Display, Formatter, Result};
 use std::vec::Vec;
