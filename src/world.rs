@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 use std::fmt::{Display, Formatter, Result};
 use std::vec::Vec;
-use num::FromPrimitive;
 use rand::{Rng, Rand, SeedableRng, XorShiftRng};
 use functions;
 use universe::God;

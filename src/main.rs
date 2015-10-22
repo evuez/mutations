@@ -1,23 +1,19 @@
 extern crate num;
 extern crate rand;
 
-use std::vec::Vec;
-use std::f32::consts::PI;
-use num::FromPrimitive;
-use rand::distributions::{Normal, Sample};
-use rand::{Rand, Rng, ThreadRng};
+use std::thread;
 
 mod functions;
-mod world;
 mod universe;
+mod world;
 
 // TODO
 // Move world::{Dna, Body} to world::things
 // Move functions to universe
 
 fn main() {
-    let god = universe::God::new([13; 4]);
-    let mut body = world::Body::new([13; 4]);
+    let mut god = universe::God::new([123; 4]);
+    let mut body = god.spawn_body();
 
     let mut counter = 0;
 
@@ -32,5 +28,5 @@ fn main() {
         }
     }
 
-    println!("{:?}", counter);
+    println!("Number of steps: {:?}", counter);
 }
