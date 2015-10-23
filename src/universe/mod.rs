@@ -1,4 +1,5 @@
-use std::vec::Vec;
+use std::sync::{Arc, Mutex, mpsc};
+use std::thread;
 use rand::{Rng, SeedableRng, XorShiftRng};
 
 mod functions;
@@ -28,13 +29,22 @@ impl Universe {
         world::Body::new(self.next_seed())
     }
 
-    pub fn spawn_population(&mut self, body_count: i32) -> Vec<world::Body> {
-        let mut population = Vec::new();
+    pub fn spawn_population(&mut self, body_count: i32) {
+        let mut self_ = Arc::new(Mutex::new(self));
+        let (tx, rx) = mpsc::channel();
 
         for _ in 0..body_count {
-            population.push(self.spawn_body());
+            let (self_, tx) = (self_.clone(), tx.clone());
+
+            thread::spawn(move || {
+                let mut self_ = self_.lock().unwrap();
+                self_.spawn_body();
+                tx.send(());
+            });
         }
 
-        population
+        for _ in 0..body_count {
+            rx.recv();
+        }
     }
 }
