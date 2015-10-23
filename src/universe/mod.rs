@@ -1,15 +1,18 @@
 use std::vec::Vec;
 use rand::{Rng, SeedableRng, XorShiftRng};
-use world;
 
-pub struct God {
+mod functions;
+mod world;
+
+
+pub struct Universe {
     rng: XorShiftRng,
 }
 
 
-impl God {
-    pub fn new(seed: [u32; 4]) -> God {
-        God { rng: XorShiftRng::from_seed(seed) }
+impl Universe {
+    pub fn new(seed: [u32; 4]) -> Universe {
+        Universe { rng: XorShiftRng::from_seed(seed) }
     }
 
     fn next_seed(&mut self) -> [u32; 4] {

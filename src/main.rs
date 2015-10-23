@@ -1,19 +1,15 @@
 extern crate num;
 extern crate rand;
 
-use std::thread;
 
-mod functions;
 mod universe;
-mod world;
 
 // TODO
-// Move world::{Dna, Body} to world::things
-// Move functions to universe
+// Move world into universe and rename God into Universe
 
 fn main() {
-    let mut god = universe::God::new([123; 4]);
-    let mut body = god.spawn_body();
+    let mut universe = universe::Universe::new([123; 4]);
+    let mut body = universe.spawn_body();
 
     let mut counter = 0;
 

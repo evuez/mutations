@@ -2,8 +2,7 @@ use std::f32::consts::PI;
 use std::fmt::{Display, Formatter, Result};
 use std::vec::Vec;
 use rand::{Rng, Rand, SeedableRng, XorShiftRng};
-use functions;
-use universe::God;
+use universe::functions;
 
 
 const MAP_WIDTH: f32 = 500.0;
@@ -21,7 +20,7 @@ pub struct Pose {
 pub struct Dna {
     seed: [u32; 4],
     length: u32,
-    rate: f64,
+    mutation_rate: f64,
     seeds: Vec<[u32; 4]>,
     genes: Vec<XorShiftRng>,
     current: u32,
@@ -32,7 +31,7 @@ pub struct Body {
     pub pose: Pose,
     age: i32,
     pub energy: f32,
-    decay: f32,
+    decay_rate: f32,
 }
 
 
@@ -40,7 +39,7 @@ impl Pose {
     fn new_random(dna: &mut Dna) -> Pose {
         Pose {
             x: dna.next::<f32>() * MAP_WIDTH,
-            y: dna.next::<f32>() * MAP_WIDTH,
+            y: dna.next::<f32>() * MAP_HEIGHT,
             d: dna.next::<f32>() * PI,
         }
     }
@@ -79,7 +78,7 @@ impl Dna {
         Dna {
             seed: seed,
             length: length,
-            rate: functions::gaussian(&mut rng, AVERAGE_MUTATION_RATE),
+            mutation_rate: functions::gaussian(&mut rng, AVERAGE_MUTATION_RATE),
             seeds: seeds,
             genes: genes,
             current: 0,
@@ -102,7 +101,7 @@ impl Body {
             pose: Pose::new_random(&mut dna),
             age: 0,
             energy: 6500.0 + dna.next::<f32>() * 1000.0,
-            decay: 8000.0 + dna.next::<f32>() * 5000.0,
+            decay_rate: 8000.0 + dna.next::<f32>() * 5000.0,
             dna: dna,
         }
     }
