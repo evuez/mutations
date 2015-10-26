@@ -25,4 +25,6 @@ fn main() {
     }
 
     println!("Number of steps: {:?}", counter);
+
+    universe.spawn_population(6);
 }
