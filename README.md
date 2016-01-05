@@ -1,6 +1,6 @@
 # mutations
 
-A something-simulation.
+A something-simulation in Python. There's also a WIP of a Rust implementation on the [rust-impl](https://github.com/evuez/mutations/tree/rust-impl) branch.
 
 ![mutations](http://i.imgur.com/TWNbBot.png)
 
