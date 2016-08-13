@@ -39,7 +39,7 @@ def bar(x, y, size, color):
 	glEnd()
 
 
-class MapView(object):
+class SimView(object):
 
 	def __init__(self, map_):
 		self.map = map_

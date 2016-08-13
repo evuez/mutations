@@ -7,7 +7,7 @@ from pyglet.window import Window
 from pyglet.clock import schedule_interval
 from pyglet.gl import glClearColor
 
-from render import MapView
+from render import SimView
 from render import GraphView
 from mutations import Map
 from mutations import Body
@@ -36,15 +36,15 @@ def test_view():
 		map_.tick()
 
 
-	simulation = Window(map_.width, map_.height)
-	map_view = MapView(map_)
+	sim = Window(map_.width, map_.height)
+	sim_view = SimView(map_)
 	schedule_interval(update, 0.1)
 
-	@simulation.event
+	@sim.event
 	def on_draw():
 		glClearColor(.5, .6, .6, 1)
-		simulation.clear()
-		map_view.draw()
+		sim.clear()
+		sim_view.draw()
 
 
 	graph = Window(500, 100)
